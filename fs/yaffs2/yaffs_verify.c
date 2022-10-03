@@ -1,8 +1,7 @@
 /*
  * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
  *
- * Copyright (C) 2002-2011 Aleph One Ltd.
- *   for Toby Churchill Ltd and Brightstar Engineering
+ * Copyright (C) 2002-2018 Aleph One Ltd.
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
  *
@@ -19,40 +18,42 @@
 
 int yaffs_skip_verification(struct yaffs_dev *dev)
 {
-	dev = dev;
+	(void) dev;
 	return !(yaffs_trace_mask &
 		 (YAFFS_TRACE_VERIFY | YAFFS_TRACE_VERIFY_FULL));
 }
 
 static int yaffs_skip_full_verification(struct yaffs_dev *dev)
 {
-	dev = dev;
+	(void) dev;
 	return !(yaffs_trace_mask & (YAFFS_TRACE_VERIFY_FULL));
 }
 
 static int yaffs_skip_nand_verification(struct yaffs_dev *dev)
 {
-	dev = dev;
+	(void) dev;
 	return !(yaffs_trace_mask & (YAFFS_TRACE_VERIFY_NAND));
 }
 
 static const char * const block_state_name[] = {
-	"Unknown",
-	"Needs scan",
-	"Scanning",
-	"Empty",
-	"Allocating",
-	"Full",
-	"Dirty",
-	"Checkpoint",
-	"Collecting",
-	"Dead"
+	[YAFFS_BLOCK_STATE_UNKNOWN] = "Unknown",
+	[YAFFS_BLOCK_STATE_NEEDS_SCAN] = "Needs scan",
+	[YAFFS_BLOCK_STATE_SCANNING] = "Scanning",
+	[YAFFS_BLOCK_STATE_EMPTY] = "Empty",
+	[YAFFS_BLOCK_STATE_ALLOCATING] = "Allocating",
+	[YAFFS_BLOCK_STATE_FULL] = "Full",
+	[YAFFS_BLOCK_STATE_DIRTY] = "Dirty",
+	[YAFFS_BLOCK_STATE_CHECKPOINT] = "Checkpoint",
+	[YAFFS_BLOCK_STATE_COLLECTING] = "Collecting",
+	[YAFFS_BLOCK_STATE_DEAD] = "Dead"
 };
 
 void yaffs_verify_blk(struct yaffs_dev *dev, struct yaffs_block_info *bi, int n)
 {
 	int actually_used;
 	int in_use;
+
+	(void) block_state_name;
 
 	if (yaffs_skip_verification(dev))
 		return;
@@ -77,10 +78,10 @@ void yaffs_verify_blk(struct yaffs_dev *dev, struct yaffs_block_info *bi, int n)
 	actually_used = bi->pages_in_use - bi->soft_del_pages;
 
 	if (bi->pages_in_use < 0 ||
-	    bi->pages_in_use > dev->param.chunks_per_block ||
+	    bi->pages_in_use > (int)dev->param.chunks_per_block ||
 	    bi->soft_del_pages < 0 ||
-	    bi->soft_del_pages > dev->param.chunks_per_block ||
-	    actually_used < 0 || actually_used > dev->param.chunks_per_block)
+	    bi->soft_del_pages > (int)dev->param.chunks_per_block ||
+	    actually_used < 0 || actually_used > (int)dev->param.chunks_per_block)
 		yaffs_trace(YAFFS_TRACE_VERIFY,
 			"Block %d has illegal values pages_in_used %d soft_del_pages %d",
 			n, bi->pages_in_use, bi->soft_del_pages);
@@ -110,8 +111,8 @@ void yaffs_verify_collected_blk(struct yaffs_dev *dev,
 
 void yaffs_verify_blocks(struct yaffs_dev *dev)
 {
-	int i;
-	int state_count[YAFFS_NUMBER_OF_BLOCK_STATES];
+	u32 i;
+	u32 state_count[YAFFS_NUMBER_OF_BLOCK_STATES];
 	int illegal_states = 0;
 
 	if (yaffs_skip_verification(dev))
@@ -149,7 +150,7 @@ void yaffs_verify_blocks(struct yaffs_dev *dev)
 			dev->blocks_in_checkpt,
 			state_count[YAFFS_BLOCK_STATE_CHECKPOINT]);
 
-	if (dev->n_erased_blocks != state_count[YAFFS_BLOCK_STATE_EMPTY])
+	if (dev->n_erased_blocks != (int)state_count[YAFFS_BLOCK_STATE_EMPTY])
 		yaffs_trace(YAFFS_TRACE_VERIFY,
 			"Erased block count wrong dev %d count %d",
 			dev->n_erased_blocks,
@@ -201,7 +202,7 @@ void yaffs_verify_oh(struct yaffs_obj *obj, struct yaffs_obj_hdr *oh,
 			tags->obj_id, oh->parent_obj_id);
 
 	if (parent_check && obj->parent &&
-	    oh->parent_obj_id != obj->parent->obj_id &&
+	    oh->parent_obj_id !=  obj->parent->obj_id &&
 	    (oh->parent_obj_id != YAFFS_OBJECTID_UNLINKED ||
 	     obj->parent->obj_id != YAFFS_OBJECTID_DELETED))
 		yaffs_trace(YAFFS_TRACE_VERIFY,
@@ -224,12 +225,11 @@ void yaffs_verify_file(struct yaffs_obj *obj)
 {
 	u32 x;
 	int required_depth;
-	int actual_depth;
 	int last_chunk;
 	u32 offset_in_chunk;
 	u32 the_chunk;
 
-	u32 i;
+	int i;
 	struct yaffs_dev *dev;
 	struct yaffs_ext_tags tags;
 	struct yaffs_tnode *tn;
@@ -256,8 +256,6 @@ void yaffs_verify_file(struct yaffs_obj *obj)
 		required_depth++;
 	}
 
-	actual_depth = obj->variant.file_variant.top_level;
-
 	/* Check that the chunks in the tnode tree are all correct.
 	 * We do this by scanning through the tnode tree and
 	 * checking the tags for every chunk match.
@@ -276,7 +274,7 @@ void yaffs_verify_file(struct yaffs_obj *obj)
 		if (the_chunk > 0) {
 			yaffs_rd_chunk_tags_nand(dev, the_chunk, NULL,
 						 &tags);
-			if (tags.obj_id != obj_id || tags.chunk_id != i)
+			if (tags.obj_id != obj_id || tags.chunk_id != (u32)i)
 				yaffs_trace(YAFFS_TRACE_VERIFY,
 					"Object %d chunk_id %d NAND mismatch chunk %d tags (%d:%d)",
 					obj_id, i, the_chunk,
@@ -470,11 +468,25 @@ void yaffs_verify_dir(struct yaffs_obj *directory)
 {
 	struct list_head *lh;
 	struct yaffs_obj *list_obj;
+	struct yaffs_dev *dev;
 
 	if (!directory) {
 		BUG();
 		return;
 	}
+
+	dev = directory->my_dev;
+
+	if (!dev) {
+		BUG();
+		return;
+	}
+
+	if (directory == dev->root_dir ||
+	    directory == dev->lost_n_found ||
+	    directory == dev->unlinked_dir ||
+	    directory == dev->del_dir)
+		return;
 
 	if (yaffs_skip_full_verification(directory->my_dev))
 		return;
@@ -524,6 +536,6 @@ void yaffs_verify_free_chunks(struct yaffs_dev *dev)
 
 int yaffs_verify_file_sane(struct yaffs_obj *in)
 {
-	in = in;
+	(void) in;
 	return YAFFS_OK;
 }

@@ -1,8 +1,7 @@
 /*
  * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
  *
- * Copyright (C) 2002-2011 Aleph One Ltd.
- *   for Toby Churchill Ltd and Brightstar Engineering
+ * Copyright (C) 2002-2018 Aleph One Ltd.
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
  *
@@ -21,11 +20,14 @@
 
 int yaffs1_scan(struct yaffs_dev *dev)
 {
+#ifdef CONFIG_YAFFS_NO_YAFFS1
+	return YAFFS_FAIL;
+#else
 	struct yaffs_ext_tags tags;
-	int blk;
+	u32 blk;
 	int result;
 	int chunk;
-	int c;
+	u32 c;
 	int deleted;
 	enum yaffs_block_state state;
 	LIST_HEAD(hard_list);
@@ -98,6 +100,8 @@ int yaffs1_scan(struct yaffs_dev *dev)
 			result = yaffs_rd_chunk_tags_nand(dev, chunk, NULL,
 							  &tags);
 
+			if (result != YAFFS_OK)
+				continue;
 			/* Let's have a good look at this chunk... */
 
 			if (tags.ecc_result == YAFFS_ECC_RESULT_UNFIXED ||
@@ -162,15 +166,15 @@ int yaffs1_scan(struct yaffs_dev *dev)
 				if (in &&
 				    in->variant_type ==
 				     YAFFS_OBJECT_TYPE_FILE &&
-				    in->variant.file_variant.scanned_size <
+				    in->variant.file_variant.stored_size <
 				      endpos) {
-					in->variant.file_variant.scanned_size =
+					in->variant.file_variant.stored_size =
 					    endpos;
 					if (!dev->param.use_header_file_size) {
 						in->variant.
 						    file_variant.file_size =
 						    in->variant.
-						    file_variant.scanned_size;
+						    file_variant.stored_size;
 					}
 
 				}
@@ -325,7 +329,7 @@ int yaffs1_scan(struct yaffs_dev *dev)
 						    use_header_file_size)
 							in->variant.
 							file_variant.file_size
-							= yaffs_oh_to_size(oh);
+							= yaffs_oh_to_size(dev, oh, 0);
 						break;
 					case YAFFS_OBJECT_TYPE_HARDLINK:
 						in->variant.
@@ -419,4 +423,5 @@ int yaffs1_scan(struct yaffs_dev *dev)
 	yaffs_trace(YAFFS_TRACE_SCAN, "yaffs1_scan ends");
 
 	return YAFFS_OK;
+#endif
 }

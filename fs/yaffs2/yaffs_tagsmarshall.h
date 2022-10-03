@@ -12,10 +12,10 @@
  * Note: Only YAFFS headers are LGPL, YAFFS C code is covered by GPL.
  */
 
-#ifndef __YAFFS_YAFFS1_H__
-#define __YAFFS_YAFFS1_H__
+#ifndef __YAFFS_TAGSMARSHALL_H__
+#define __YAFFS_TAGSMARSHALL_H__
 
 #include "yaffs_guts.h"
-int yaffs1_scan(struct yaffs_dev *dev);
+void yaffs_tags_marshall_install(struct yaffs_dev *dev);
 
 #endif

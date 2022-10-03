@@ -1,8 +1,7 @@
 /*
  * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
  *
- * Copyright (C) 2002-2011 Aleph One Ltd.
- *   for Toby Churchill Ltd and Brightstar Engineering
+ * Copyright (C) 2002-2018 Aleph One Ltd.
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
  *
@@ -54,6 +53,8 @@
 #define YUCHAR unsigned char
 #define _Y(x)     x
 
+#define YTIME_T u64
+
 #define YAFFS_LOSTNFOUND_NAME		"lost+found"
 #define YAFFS_LOSTNFOUND_PREFIX		"obj"
 
@@ -62,16 +63,27 @@
 #define YAFFS_LOSTNFOUND_MODE		0700
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 5, 0))
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,12,0))
 #define Y_CURRENT_TIME CURRENT_TIME.tv_sec
+#else
+#define Y_CURRENT_TIME current_kernel_time().tv_sec
+#endif
 #define Y_TIME_CONVERT(x) (x).tv_sec
 #else
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,12,0))
 #define Y_CURRENT_TIME CURRENT_TIME
+#else
+#define Y_CURRENT_TIME current_kernel_time()
+#endif
 #define Y_TIME_CONVERT(x) (x)
 #endif
 
 #define compile_time_assertion(assertion) \
 	({ int x = __builtin_choose_expr(assertion, 0, (void)0); (void) x; })
 
+
+#define yaffs_printf(msk, fmt, ...) \
+	printk(KERN_DEBUG "yaffs: " fmt "\n", ##__VA_ARGS__)
 
 #define yaffs_trace(msk, fmt, ...) do { \
 	if (yaffs_trace_mask & (msk)) \
