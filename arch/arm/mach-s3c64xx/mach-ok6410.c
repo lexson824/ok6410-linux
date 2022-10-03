@@ -127,20 +127,23 @@ static struct s3c2410_uartcfg ok6410_uartcfgs[] __initdata = {
 static struct mtd_partition ok6410_nand_part[] = {
 	[0] = {
 		.name		= "uboot",
-		.size		= SZ_1M,
+		.size		= 2 * SZ_1M,
 		.offset		= 0,
-		.mask_flags	= MTD_CAP_NANDFLASH,
 	},
 	[1] = {
 		.name		= "kernel",
 		.size		= 5 * SZ_1M,
-		.offset		= MTDPART_OFS_APPEND,
-		.mask_flags	= MTD_CAP_NANDFLASH,
+		.offset		= 2 * SZ_1M,
 	},
 	[2] = {
 		.name		= "rootfs",
+		.size		= 250 * SZ_1M,
+		.offset		= 7 * SZ_1M,
+	},
+	[3] = {
+		.name		= "user",
 		.size		= MTDPART_SIZ_FULL,
-		.offset		= MTDPART_OFS_APPEND,
+		.offset		= 257 * SZ_1M,
 	},
 };
 
