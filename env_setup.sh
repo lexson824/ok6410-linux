@@ -5,9 +5,9 @@ JOBS=4
 #KERNELDIR="/lib/modules/`uname -r`/build"
 export KERNELDIR=`pwd`
 export ARCH=arm
-export O=~/build/linux
+export O=./build
 export INSTALL_MOD_PATH=$O/modules
-export CROSS_COMPILE=arm-linux-gnueabi-
+export CROSS_COMPILE=arm-none-linux-gnueabi-
 export BOARD="ok6410"
 export defconfig="ok6410_defconfig"
 
