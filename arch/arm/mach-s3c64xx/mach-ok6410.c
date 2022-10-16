@@ -1009,9 +1009,9 @@ static void __init ok6410_machine_init(void)
 
 	s3c_ide_set_platdata(&ok6410_ide_pdata);
 
-	samsung_bl_set(&ok6410_bl_gpio_info, &ok6410_bl_data);
-
 	platform_add_devices(ok6410_devices, ARRAY_SIZE(ok6410_devices));
+
+	samsung_bl_set(&ok6410_bl_gpio_info, &ok6410_bl_data);
 
 	/* enable USB phy clock */
 	s5p_usb_phy_init(&s3c_device_usb_hsotg, USB_PHY_TYPE_DEVICE);
